@@ -68,7 +68,7 @@ class DataSampling(source_path: String, src_partition: String, id_destination_pa
     //val id_downsampled = spark.read.parquet(path_read_id).filter($"src" === src && $"dt" === id_date).select("did")
     val id_downsampled = spark.read.parquet(path_read_id).filter("src = " + "'"+src+ "'").filter("dt = " + "'"+id_date+ "'").select("did")
     println("==============     INFO: IDs read success, proceed to daily data            ==============")
-    val new_incoming_data = spark.read.parquet(path_daily_data).filter("dt = " + "'"+day_for_downsampling+ "'")
+    val new_incoming_data = spark.read.parquet(path_daily_data).filter("src = " + "'"+src+ "'").filter("dt = " + "'"+day_for_downsampling+ "'")
     println("==============     INFO: Daily data read success, proceed to downsampling   ==============")
     val new_data_downsampled_by_IDs = new_incoming_data.join(id_downsampled, Seq("did"))
     println("==============     INFO: Downsampling is done, proceed to next procedure    ==============")
@@ -107,7 +107,7 @@ def test()={
 
   dsc.run_get_IDs_weekly(id_from, id_to, id_frac)
 
-  val some_day : String = "2018-09-17"
+  val some_day : String = "2018-09-18"
   dsc.run_get_records_by_ID_daily(id_to, some_day)
 
 
