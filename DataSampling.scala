@@ -25,7 +25,7 @@ class DataSampling(source_path: String, src_partition: String, id_destination_pa
     //write cds15-dataframe to HDFS
 
     df.write.partitionBy("src", "dt").mode(SaveMode.Append).parquet(ppath)
-    println("write to HDFS is done")
+    println("==============     INFO: write to HDFS is done     ==============")
   }
 
   def sampleIdByTime (id_from: String, id_to: String, frac: Double, src_path: String, src: String, sample_by_col: String = "did", num_part: Int = 50, seed: Int = 42):DataFrame = {
@@ -66,7 +66,7 @@ class DataSampling(source_path: String, src_partition: String, id_destination_pa
     // src  - src-partition for the ID-data
 
     //val id_downsampled = spark.read.parquet(path_read_id).filter($"src" === src && $"dt" === id_date).select("did")
-    val id_downsampled = spark.read.parquet(path_read_id).filter("src = " + "'"+src+ "'").filter("dt = " + "'"+id_date+ "'").select("did")
+    val id_downsampled    = spark.read.parquet(path_read_id).filter("src = " + "'"+src+ "'").filter("dt = " + "'"+id_date+ "'").select("did")
     println("==============     INFO: IDs read success, proceed to daily data            ==============")
     val new_incoming_data = spark.read.parquet(path_daily_data).filter("src = " + "'"+src+ "'").filter("dt = " + "'"+day_for_downsampling+ "'")
     println("==============     INFO: Daily data read success, proceed to downsampling   ==============")
@@ -94,19 +94,20 @@ class DataSampling(source_path: String, src_partition: String, id_destination_pa
 
 def test()={
   //    -----------  Class Test -----------
+  //instantiate the class
   val data_path = "/sas/opt/etl/prod/events/d1_v5/year=2018/"
   val id_dest_path = "/user/dzherebetskyy/tmp/hive/dzherebetsky/id_table"
   val sample_dest_path = "/user/dzherebetskyy/tmp/hive/dzherebetsky/downsample"
   val source = "lrtb"
-
   val dsc = new DataSampling(data_path, source, id_dest_path, sample_dest_path)
 
+  //either run weekly job
   val id_from : String = "2018-09-09"
   val id_to   : String = "2018-09-15"
   val id_frac : Double = 0.05
-
   dsc.run_get_IDs_weekly(id_from, id_to, id_frac)
 
+  //or run daily-job
   val some_day : String = "2018-09-18"
   dsc.run_get_records_by_ID_daily(id_to, some_day)
 
